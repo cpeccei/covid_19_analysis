@@ -49,33 +49,13 @@ dc <- d %>%
     ungroup() %>%
     pivot_wider(names_from = event, values_from = count)
 
+min_deaths <- 50
 top_countries_by_deaths <- dc %>%
     top_n(1, date) %>%
     top_n(10, deaths) %>%
+    # Only include countries that have at least 2 x min_deaths
+    filter(deaths > min_deaths * 2) %>%
     pull(country_or_region)
-
-# Find the starting threshold for number of deaths that maintains
-# as much consistency (as measured by StdDev / Mean) between top countries
-
-err <- function(n) {
-    dc %>%
-        filter(
-            country_or_region %in% top_countries_by_deaths,
-            deaths >= n
-        ) %>%
-        group_by(country_or_region) %>%
-        slice(1) %>%
-        ungroup() %>%
-        mutate(err = deaths / n) %>%
-        summarize(n, err = sd(deaths) / mean(deaths))
-}
-
-d_err <- map_dfr(5:100, err)
-d_err %>%
-    ggplot(aes(n, err)) + geom_line() + geom_point()
-min_deaths <- d_err$n[which.min(d_err$err)]
-
-# ======================================================================
 
 # Use min_deaths to compute data for plotting
 g <- dc %>%
@@ -92,7 +72,7 @@ g <- dc %>%
     ) %>%
     ungroup()
 
-ggplot(g, aes(x, deaths, color = country_or_region)) +
+p <- ggplot(g, aes(x, deaths, color = country_or_region)) +
     geom_line(size = 1) +
     labs(
         title = "Total deaths from COVID-19",
@@ -123,7 +103,7 @@ g <- dc %>%
     ) %>%
     ungroup()
 
-ggplot(g, aes(x, deaths, color = country_or_region)) +
+p <- ggplot(g, aes(x, deaths, color = country_or_region)) +
     geom_line(size = 1) +
     labs(
         title = "Total deaths from COVID-19",
