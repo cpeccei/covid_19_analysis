@@ -11,7 +11,7 @@ get_data <- function(event) {
     url <- str_c(
         "https://raw.githubusercontent.com/CSSEGISandData/",
         "COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/",
-        "time_series_19-covid-", event, ".csv"
+        "time_series_covid19_", event, "_global.csv"
     )
     url %>%
         read_csv() %>%
@@ -24,11 +24,11 @@ get_data <- function(event) {
         pivot_longer(-(1:4), names_to = "date", values_to = "count") %>%
         mutate(
             date = mdy(date),
-            event = str_to_lower(event)
+            event = event
         )
 }
 
-d <- c("Confirmed", "Deaths", "Recovered") %>%
+d <- c("confirmed", "deaths") %>%
     map_dfr(get_data)
 
 # Columns of d:
