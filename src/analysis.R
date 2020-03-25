@@ -42,12 +42,18 @@ d <- c("confirmed", "deaths") %>%
 # event
 
 # Roll up provinces to the country level and create columns
-# for counts of Confirmed, Deaths and Recovered
+# for counts of total confirmed and deaths, as well as per day numbers
 dc <- d %>%
     group_by(country_or_region, event, date) %>%
     summarize(count = sum(count)) %>%
     ungroup() %>%
-    pivot_wider(names_from = event, values_from = count)
+    pivot_wider(names_from = event, values_from = count) %>%
+    group_by(country_or_region) %>%
+    mutate(
+        confirmed_per_day = confirmed - lag(confirmed),
+        deaths_per_day = deaths - lag(deaths)
+    ) %>%
+    ungroup()
 
 min_deaths <- 50
 top_countries_by_deaths <- dc %>%
@@ -117,3 +123,25 @@ p <- ggplot(g, aes(x, deaths, color = country_or_region)) +
     geom_point(data = filter(g, is_last), size = 4)
 
 ggsave(file = "../output/covid_deaths_all_days.png", width = 9, height = 7)
+
+
+# =====================================================================
+
+g <- dc %>%
+    filter(country_or_region %in% top_countries_by_deaths) %>%
+    group_by(country_or_region) %>%
+    slice((n() - 13):n()) %>%
+    ungroup()
+
+p <- ggplot(g, aes(date, deaths_per_day)) +
+    geom_col() +
+    labs(
+        title = "Deaths per day from COVID-19",
+        subtitle = paste("Includes data up until", max(dc$date)),
+        x = paste(""),
+        y = "Deaths per day"
+    ) +
+    facet_wrap(vars(country_or_region), ncol = 3)
+
+ggsave(file = "../output/covid_deaths_per_day.png", width = 9, height = 9)
+

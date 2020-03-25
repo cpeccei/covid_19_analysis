@@ -5,3 +5,5 @@ Analysis based on data from the [COVID-19 (2019-nCoV) Data Repository by Johns H
 ![Deaths first 14 days](output/covid_deaths_first_14_days.png)
 
 ![Deaths all days](output/covid_deaths_all_days.png)
+
+![Deaths per day](output/covid_deaths_per_day.png)
