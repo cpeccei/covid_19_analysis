@@ -7,6 +7,10 @@ options(stringsAsFactors = FALSE, scipen = 999)
 # If more than print_min rows, print only print_max rows.
 options(tibble.print_max = 20, tibble.print_min = 20)
 
+pretty_limits <- function(limits) {
+    range(pretty(limits))
+}
+
 get_data <- function(event) {
     url <- str_c(
         "https://raw.githubusercontent.com/CSSEGISandData/",
@@ -88,7 +92,8 @@ p <- ggplot(g, aes(x, deaths, color = country_or_region)) +
         color = "Country"
     ) +
     scale_x_continuous(breaks = seq(0, 14, 2)) +
-    scale_y_continuous(labels = scales::comma) +
+    scale_y_continuous(labels = scales::comma, limits = pretty_limits,
+        breaks = pretty) +
     # Place a dot on the last data point for each country
     geom_point(data = filter(g, is_last), size = 4)
 
@@ -118,7 +123,8 @@ p <- ggplot(g, aes(x, deaths, color = country_or_region)) +
         y = "Total deaths",
         color = "Country"
     ) +
-    scale_y_continuous(labels = scales::comma) +
+    scale_y_continuous(labels = scales::comma, limits = pretty_limits,
+        breaks = pretty) +
     # Place a dot on the last data point for each country
     geom_point(data = filter(g, is_last), size = 4)
 
@@ -137,10 +143,11 @@ p <- ggplot(g, aes(date, deaths_per_day)) +
     geom_col() +
     labs(
         title = "Deaths per day from COVID-19",
-        subtitle = paste("Includes data up until", max(dc$date)),
+        subtitle = paste("Latest 14 days ending", max(dc$date)),
         x = paste(""),
         y = "Deaths per day"
     ) +
+    scale_y_continuous(limits = pretty_limits, breaks = pretty) +
     facet_wrap(vars(country_or_region), ncol = 3)
 
 ggsave(file = "../output/covid_deaths_per_day.png", width = 9, height = 9)
